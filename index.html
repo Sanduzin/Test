@@ -33,18 +33,25 @@
     </div>
 
     <script>
-      function mudarCor(cor) {
-        const modelViewer = document.getElementById('modelo');
+      const modelViewer = document.getElementById('modelo');
+
+      function hexToRgb(hex) {
+        return [
+          parseInt(hex.substr(1, 2), 16) / 255,
+          parseInt(hex.substr(3, 2), 16) / 255,
+          parseInt(hex.substr(5, 2), 16) / 255,
+          1,
+        ];
+      }
+
+      async function mudarCor(cor) {
+        await modelViewer.updateComplete; // espera o carregamento completo
         const material = modelViewer.model?.materials?.[0];
-        if (material) {
-          material.pbrMetallicRoughness.setBaseColorFactor([ // RGBA normalizado
-            parseInt(cor.substr(1, 2), 16) / 255,
-            parseInt(cor.substr(3, 2), 16) / 255,
-            parseInt(cor.substr(5, 2), 16) / 255,
-            1
-          ]);
+
+        if (material && material.pbrMetallicRoughness) {
+          material.pbrMetallicRoughness.setBaseColorFactor(hexToRgb(cor));
         } else {
-          console.log("Material ainda não carregado.");
+          console.warn("Material não disponível ou ainda não carregado.");
         }
       }
     </script>
