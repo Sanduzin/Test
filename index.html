@@ -1,44 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Visualizador de Modelo 3D</title>
+  <meta charset="UTF-8">
+  <title>Visualizador GLB com cores</title>
   <style>
-    body { margin: 0; overflow: hidden; background-color: #000; }
+    body { margin: 0; }
     canvas { display: block; }
-    #controls {
+    #colorControls {
       position: absolute;
       top: 10px;
       left: 10px;
-      z-index: 10;
       background: rgba(255, 255, 255, 0.8);
       padding: 10px;
-      border-radius: 8px;
-    }
-    #controls label {
-      display: block;
-      margin: 5px 0;
+      border-radius: 5px;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
-  <div id="controls">
-    <label>
-      Cor da parte 1:
-      <input type="color" id="color1" value="#ff0000">
-    </label>
-    <label>
-      Cor da parte 2:
-      <input type="color" id="color2" value="#00ff00">
-    </label>
+  <div id="colorControls">
+    <label>Rectangle003: <input type="color" id="colorRectangle003" value="#ff0000"></label><br>
+    <label>Rectangle002: <input type="color" id="colorRectangle002" value="#00ff00"></label><br>
+    <label>Line004: <input type="color" id="colorLine004" value="#0000ff"></label>
   </div>
-
   <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.153.0/examples/jsm/controls/OrbitControls.js';
+    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.153.0/examples/jsm/loaders/GLTFLoader.js';
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    camera.position
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    camera.position.z = 5;
+    controls.update();
+
+    const light = new THREE.HemisphereLight(0xffffff, 0x444444);
+    scene.add(light);
+
+    const loader = new GLTFLoader();
+    loader.load('12r.glb', function(gltf) {
+      const model = gltf.scene;
+      scene.add(model);
+
+      const parts = {
+        Rectangle003: model.getObjectByName('Rectangle003'),
+        Rectangle002: model.getObjectByName('Rectangle002'),
+        Line004: model.getObjectByName('Line004')
+      };
+
+      for (const [id, object] of Object.entries(parts)) {
+        if (object && object.material) {
+          document.getElementById(`color${id}`).addEventListener('input', (e) => {
+            object.material.color.set(e.target.value);
+          });
+        }
+      }
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
