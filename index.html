@@ -1,77 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Color Picker GLB</title>
-  <style>
-    body { margin: 0; overflow: hidden; }
-    #controls {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(255, 255, 255, 0.8);
-      padding: 10px;
-      border-radius: 8px;
-      z-index: 1;
-    }
-  </style>
-</head>
-<body>
-  <div id="controls">
-    <label>Rectangle003: <input type="color" id="color1" value="#ff0000"></label><br>
-    <label>Rectangle002: <input type="color" id="color2" value="#00ff00"></label><br>
-    <label>Line004: <input type="color" id="color3" value="#0000ff"></label>
-  </div>
-  <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.160.1/build/three.module.js';
-    import { GLTFLoader } from 'https://unpkg.com/three@0.160.1/examples/jsm/loaders/GLTFLoader.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.160.1/examples/jsm/controls/OrbitControls.js';
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 1, 3);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-
-    const light = new THREE.HemisphereLight(0xffffff, 0x444444);
-    scene.add(light);
-
-    const loader = new GLTFLoader();
-    let model;
-
-    loader.load('12r.glb', function(gltf) {
-      model = gltf.scene;
-      scene.add(model);
-
-      animate();
-
-      // Função para alterar cor de um objeto pelo nome
-      function updateColor(partName, hexColor) {
-        const part = model.getObjectByName(partName);
-        if (part && part.material) {
-          part.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(hexColor) });
-        }
+  <head>
+    <meta charset="utf-8" />
+    <title>Color Picker 3D</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
       }
+      #colorControls {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="colorControls">
+      <label for="color1">Rectangle003:</label>
+      <input type="color" id="color1" value="#ff0000"><br>
+      <label for="color2">Rectangle002:</label>
+      <input type="color" id="color2" value="#00ff00"><br>
+      <label for="color3">Line004:</label>
+      <input type="color" id="color3" value="#0000ff"><br>
+    </div>
+    <script type="module">
+      import * as THREE from 'https://cdn.skypack.dev/three@0.152.2';
+      import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
+      import { OrbitControls } from 'https://cdn.skypack.dev/three@0.152.2/examples/jsm/controls/OrbitControls.js';
 
-      document.getElementById('color1').addEventListener('input', (e) => updateColor('Rectangle003', e.target.value));
-      document.getElementById('color2').addEventListener('input', (e) => updateColor('Rectangle002', e.target.value));
-      document.getElementById('color3').addEventListener('input', (e) => updateColor('Line004', e.target.value));
-    });
-
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    }
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  </script>
-</body>
-</html>
+      document.body.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      camera.position.set(0, 1, 2);
+      controls.update();
+
+      const light = new THREE.AmbientLight(0xffffff, 1);
+      scene.add(light);
+
+      const loader = new GLTFLoader();
+      loader.load(
+        'model.glb', // Certifique-se de que o nome do arquivo é exatamente "model.glb"
+        function (gltf) {
+          const model = gltf.scene;
+          scene.add(model);
+
+          const parts = {
+            Rectangle003: model.getObjectByName("Rectangle003"),
+            Rectangle002: model.getObjectByName("Rectangle002"),
+            Line004: model.getObjectByName("Line004")
+          };
+
+          document.getElementById('color1').addEventListener('input', (e) => {
+            if (parts.Rectangle003) parts.Rectangle003.material.color.set(e.target.value);
+          });
+          document.getElementById('color2').addEventListener('input', (e) => {
+            if (parts.Rectangle002) parts.Rectangle002.material.color.set(e.target.value);
+          });
+          document.getElementById('color3').addEventListener('input', (e) => {
+            if (parts.Line004) parts.Line004.material.color.set(e.target.value);
+          });
+        },
+        undefined,
+        function (error) {
+          console.error("Erro ao carregar GLB:",
