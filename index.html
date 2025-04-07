@@ -16,16 +16,12 @@
       }
       model-viewer {
         width: 100%;
-        height: 90vh;
-      }
-      .controls {
-        margin-top: 10px;
+        height: 90%;
       }
       button {
-        margin: 0 5px;
-        padding: 10px;
+        margin-top: 10px;
+        padding: 10px 20px;
         font-size: 16px;
-        cursor: pointer;
       }
     </style>
   </head>
@@ -42,37 +38,23 @@
       environment-image="neutral"
     ></model-viewer>
 
-    <div class="controls">
-      <button onclick="changeColor('red')">Vermelho</button>
-      <button onclick="changeColor('green')">Verde</button>
-      <button onclick="changeColor('blue')">Azul</button>
-    </div>
+    <button id="colorButton">Mudar cor do Plastic 18 para vermelho</button>
 
     <script type="module">
       const modelViewer = document.getElementById('model');
+      const button = document.getElementById('colorButton');
 
       modelViewer.addEventListener('load', () => {
-        const mesh = modelViewer.model?.scene?.getObjectByName('Rectangle002');
-        if (!mesh) {
-          console.error('Objeto Rectangle002 não encontrado!');
-          return;
-        }
-
-        window.changeColor = (color) => {
-          if (mesh.material) {
-            mesh.material.pbrMetallicRoughness.setBaseColorFactor(getColorFactor(color));
+        const material = modelViewer.model?.materials.find(mat => mat.name === 'Plastic 18');
+        
+        button.addEventListener('click', () => {
+          if (material && material.pbrMetallicRoughness) {
+            material.pbrMetallicRoughness.setBaseColorFactor([1, 0, 0, 1]); // vermelho RGBA
+          } else {
+            console.error('Material "Plastic 18" não encontrado ou não tem pbrMetallicRoughness');
           }
-        };
+        });
       });
-
-      function getColorFactor(color) {
-        switch (color) {
-          case 'red': return [1, 0, 0, 1];
-          case 'green': return [0, 1, 0, 1];
-          case 'blue': return [0, 0, 1, 1];
-          default: return [1, 1, 1, 1];
-        }
-      }
     </script>
   </body>
 </html>
