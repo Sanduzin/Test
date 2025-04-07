@@ -16,12 +16,17 @@
       }
       model-viewer {
         width: 100%;
-        height: 90%;
+        height: 85%;
+      }
+      .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
       }
       button {
-        margin-top: 10px;
-        padding: 10px 20px;
-        font-size: 16px;
+        padding: 10px 15px;
+        font-size: 14px;
+        cursor: pointer;
       }
     </style>
   </head>
@@ -38,22 +43,44 @@
       environment-image="neutral"
     ></model-viewer>
 
-    <button id="colorButton">Mudar cor do Plastic 18 para vermelho</button>
+    <div class="buttons">
+      <button id="btnAmarelo">Amarelo 01.20</button>
+      <button id="btnLilas">Lilás 16.10</button>
+      <button id="btnAzul">Azul 02.30</button>
+      <button id="btnBranco">Branco 03.20</button>
+    </div>
 
     <script type="module">
       const modelViewer = document.getElementById('model');
-      const button = document.getElementById('colorButton');
+
+      function hexToRgba(hex) {
+        const r = parseInt(hex.substr(1, 2), 16) / 255;
+        const g = parseInt(hex.substr(3, 2), 16) / 255;
+        const b = parseInt(hex.substr(5, 2), 16) / 255;
+        return [r, g, b, 1];
+      }
+
+      const cores = {
+        btnAmarelo: '#F6DC00',
+        btnLilas:   '#603473',
+        btnAzul:    '#33508D',
+        btnBranco:  '#FFFFFF'
+      };
 
       modelViewer.addEventListener('load', () => {
         const material = modelViewer.model?.materials.find(mat => mat.name === 'Plastic 18');
-        
-        button.addEventListener('click', () => {
-          if (material && material.pbrMetallicRoughness) {
-            material.pbrMetallicRoughness.setBaseColorFactor([1, 0, 0, 1]); // vermelho RGBA
-          } else {
-            console.error('Material "Plastic 18" não encontrado ou não tem pbrMetallicRoughness');
-          }
-        });
+        if (!material) {
+          console.error('Material "Plastic 18" não encontrado.');
+          return;
+        }
+
+        for (const [btnId, hex] of Object.entries(cores)) {
+          const btn = document.getElementById(btnId);
+          btn.addEventListener('click', () => {
+            const color = hexToRgba(hex);
+            material.pbrMetallicRoughness.setBaseColorFactor(color);
+          });
+        }
       });
     </script>
   </body>
