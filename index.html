@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Visualizador 3D</title>
   <style>
     body { margin: 0; overflow: hidden; font-family: sans-serif; }
     #ui {
       position: absolute;
-      top: 10px; left: 10px;
-      background: rgba(255,255,255,0.8);
+      top: 10px;
+      left: 10px;
+      z-index: 10; /* Isso garante que fique na frente do canvas */
+      background: rgba(255, 255, 255, 0.9);
       padding: 10px;
       border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
     }
     button {
       margin: 5px;
       padding: 8px 12px;
       font-size: 14px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -48,6 +52,8 @@
       modelo = gltf.scene;
       scene.add(modelo);
       animate();
+    }, undefined, function (error) {
+      console.error('Erro ao carregar o modelo:', error);
     });
 
     function animate() {
