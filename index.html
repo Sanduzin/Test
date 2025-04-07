@@ -1,66 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Visualizador GLB</title>
-  <style>
-    body { margin: 0; overflow: hidden; }
-    #color-controls {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: white;
-      padding: 10px;
-      z-index: 1;
-    }
-  </style>
-</head>
-<body>
-  <div id="color-controls">
-    <button onclick="setColor('Rectangle003', 0xff0000)">Vermelho</button>
-    <button onclick="setColor('Rectangle002', 0x00ff00)">Verde</button>
-    <button onclick="setColor('Line004', 0x0000ff)">Azul</button>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script>
-    let scene = new THREE.Scene();
-    let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    let renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const light = new THREE.AmbientLight(0xffffff, 1);
-    scene.add(light);
-
-    let mixer;
-    const loader = new THREE.GLTFLoader();
-    let model;
-
-    loader.load('12r.glb', function(gltf) {
-      model = gltf.scene;
-      scene.add(model);
-      camera.position.z = 5;
-    });
-
-    function setColor(name, colorHex) {
-      if (!model) return;
-      const part = model.getObjectByName(name);
-      if (part) {
-        part.traverse(child => {
-          if (child.isMesh) {
-            child.material = new THREE.MeshStandardMaterial({ color: colorHex });
-          }
-        });
+  <head>
+    <meta charset="utf-8" />
+    <title>GLB Viewer</title>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      canvas { display: block; }
+      .ui {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        border-radius: 8px;
       }
-    }
+      .ui label {
+        display: block;
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ui">
+      <label>Rectangle002: <input type="color" id="colorRect2" value="#ff0000" /></label>
+      <label>Rectangle003: <input type="color" id="colorRect3" value="#00ff00" /></label>
+      <label>Line004: <input type="color" id="colorLine4" value="#0000ff" /></label>
+    </div>
+    <script type="module">
+      import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+      import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+      import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    }
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
 
-    animate();
-  </script>
-</body>
+      const controls = new OrbitControls(camera, renderer.domElement);
+      camera.position.set(0, 1, 3);
+      controls.update();
+
+      const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+      scene.add(light);
+
+      const loader = new GLTFLoader();
+      loader.load('12r.glb', function (gltf) {
+        const model = gltf.scene;
+        scene.add(model);
+
+        const rect2 = model.getObjectByName('Rectangle002');
+        const rect3 = model.getObjectByName('Rectangle003');
+        const line4 = model.getObjectByName('Line004');
+
+        if (rect2) rect2.material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        if (rect3) rect3.material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+        if (line4) line4.material = new THREE.MeshStandardMaterial({ color: 0x0000ff });
+
+        document.getElementById('colorRect2').addEventListener('input', e => {
+          if (rect2) rect2.material.color.set(e.target.value);
+        });
+        document.getElementById('colorRect3').addEventListener('input', e => {
+          if (rect3) rect3.material.color.set(e.target.value);
+        });
+        document.getElementById('colorLine4').addEventListener('input', e => {
+          if (line4) line4.material.color.set(e.target.value);
+        });
+      });
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      animate();
+    </script>
+  </body>
 </html>
