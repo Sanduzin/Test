@@ -2,45 +2,47 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Visualizador GLB com Mudança de Cores</title>
-    <script type="module" src="https://unpkg.com/three@0.160.1/build/three.module.js"></script>
-    <script type="module" src="https://unpkg.com/three@0.160.1/examples/jsm/loaders/GLTFLoader.js"></script>
+    <title>Visualizador GLB com Cores</title>
+    <script type="module" src="https://unpkg.com/three@0.155.0/build/three.module.js"></script>
+    <script type="module" src="https://unpkg.com/three@0.155.0/examples/jsm/loaders/GLTFLoader.js"></script>
     <style>
       body {
         margin: 0;
         overflow: hidden;
-        background: #000;
+        font-family: sans-serif;
       }
-      #controls {
+      #buttons {
         position: absolute;
         top: 10px;
         left: 10px;
+        z-index: 1;
         background: rgba(255, 255, 255, 0.9);
         padding: 10px;
         border-radius: 8px;
-        z-index: 1;
-        font-family: sans-serif;
       }
-      label {
-        display: block;
-        margin-top: 5px;
+      button {
+        margin: 5px 0;
+        width: 100%;
       }
     </style>
   </head>
   <body>
-    <div id="controls">
-      <label>Rectangle003: <input type="color" id="color1" value="#ff0000" /></label>
-      <label>Rectangle002: <input type="color" id="color2" value="#00ff00" /></label>
-      <label>Line004: <input type="color" id="color3" value="#0000ff" /></label>
+    <div id="buttons">
+      <label for="colorRectangle002">Rectangle002:</label>
+      <input type="color" id="colorRectangle002" /><br />
+
+      <label for="colorRectangle003">Rectangle003:</label>
+      <input type="color" id="colorRectangle003" /><br />
+
+      <label for="colorLine004">Line004:</label>
+      <input type="color" id="colorLine004" />
     </div>
     <script type="module">
-      import * as THREE from 'https://unpkg.com/three@0.160.1/build/three.module.js';
-      import { GLTFLoader } from 'https://unpkg.com/three@0.160.1/examples/jsm/loaders/GLTFLoader.js';
+      import * as THREE from 'https://unpkg.com/three@0.155.0/build/three.module.js';
+      import { GLTFLoader } from 'https://unpkg.com/three@0.155.0/examples/jsm/loaders/GLTFLoader.js';
 
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.z = 5;
-
       const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
@@ -48,45 +50,46 @@
       const light = new THREE.HemisphereLight(0xffffff, 0x444444);
       scene.add(light);
 
-      const loader = new GLTFLoader();
-      let parts = {};
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(1, 1, 1);
+      scene.add(directionalLight);
 
+      camera.position.z = 2;
+
+      const loader = new GLTFLoader();
       loader.load('12r.glb', (gltf) => {
         const model = gltf.scene;
         scene.add(model);
 
-        model.traverse((child) => {
-          if (child.isMesh) {
-            if (['Rectangle003', 'Rectangle002', 'Line004'].includes(child.name)) {
-              parts[child.name] = child;
-              child.material = child.material.clone(); // garante que cada um possa mudar cor individualmente
+        const parts = {
+          Rectangle002: model.getObjectByName('Rectangle002'),
+          Rectangle003: model.getObjectByName('Rectangle003'),
+          Line004: model.getObjectByName('Line004'),
+        };
+
+        function updateColor(id, part) {
+          const input = document.getElementById(id);
+          input.addEventListener('input', () => {
+            if (parts[part]) {
+              parts[part].traverse((child) => {
+                if (child.isMesh) {
+                  child.material = new THREE.MeshStandardMaterial({ color: input.value });
+                }
+              });
             }
-          }
-        });
+          });
+        }
 
-        document.getElementById('color1').addEventListener('input', (e) => {
-          if (parts['Rectangle003']) parts['Rectangle003'].material.color.set(e.target.value);
-        });
-
-        document.getElementById('color2').addEventListener('input', (e) => {
-          if (parts['Rectangle002']) parts['Rectangle002'].material.color.set(e.target.value);
-        });
-
-        document.getElementById('color3').addEventListener('input', (e) => {
-          if (parts['Line004']) parts['Line004'].material.color.set(e.target.value);
-        });
+        updateColor('colorRectangle002', 'Rectangle002');
+        updateColor('colorRectangle003', 'Rectangle003');
+        updateColor('colorLine004', 'Line004');
       });
 
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
-
-      const animate = () => {
+      function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
-      };
+      }
+
       animate();
     </script>
   </body>
