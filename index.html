@@ -1,78 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Visualizador GLB com cores</title>
-  <style>
-    body { margin: 0; }
-    canvas { display: block; }
-    #colorControls {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(255, 255, 255, 0.8);
-      padding: 10px;
-      border-radius: 5px;
-      z-index: 1;
-    }
-  </style>
-</head>
-<body>
-  <div id="colorControls">
-    <label>Rectangle003: <input type="color" id="colorRectangle003" value="#ff0000"></label><br>
-    <label>Rectangle002: <input type="color" id="colorRectangle002" value="#00ff00"></label><br>
-    <label>Line004: <input type="color" id="colorLine004" value="#0000ff"></label>
-  </div>
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.module.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.153.0/examples/jsm/controls/OrbitControls.js';
-    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.153.0/examples/jsm/loaders/GLTFLoader.js';
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    camera.position.z = 5;
-    controls.update();
-
-    const light = new THREE.HemisphereLight(0xffffff, 0x444444);
-    scene.add(light);
-
-    const loader = new GLTFLoader();
-    loader.load('12r.glb', function(gltf) {
-      const model = gltf.scene;
-      scene.add(model);
-
-      const parts = {
-        Rectangle003: model.getObjectByName('Rectangle003'),
-        Rectangle002: model.getObjectByName('Rectangle002'),
-        Line004: model.getObjectByName('Line004')
-      };
-
-      for (const [id, object] of Object.entries(parts)) {
-        if (object && object.material) {
-          document.getElementById(`color${id}`).addEventListener('input', (e) => {
-            object.material.color.set(e.target.value);
-          });
-        }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Visualizador GLB</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
       }
-    });
+      #colorSelectors {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="colorSelectors">
+      <label>Parte 1: <input type="color" id="color1" value="#ff0000" /></label><br />
+      <label>Parte 2: <input type="color" id="color2" value="#00ff00" /></label><br />
+      <label>Parte 3: <input type="color" id="color3" value="#0000ff" /></label>
+    </div>
+    <script type="module">
+      import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
+      import { GLTFLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
+      import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
 
-    function animate() {
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  </script>
-</body>
+      document.body.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      camera.position.set(0, 1, 2);
+      controls.update();
+
+      const light = new THREE.HemisphereLight(0xffffff, 0x444444);
+      light.position.set(0, 20, 0);
+      scene.add(light);
+
+      const loader = new GLTFLoader();
+      let part1, part2, part3;
+
+      loader.load('12r.glb', (gltf) => {
+        scene.add(gltf.scene);
+
+        part1 = gltf.scene.getObjectByName('Rectangle003');
+        part2 = gltf.scene.getObjectByName('Rectangle002');
+        part3 = gltf.scene.getObjectByName('Line004');
+
+        document.getElementById('color1').addEventListener('input', (e) => {
+          if (part1) part1.material.color.set(e.target.value);
+        });
+
+        document.getElementById('color2').addEventListener('input', (e) => {
+          if (part2) part2.material.color.set(e.target.value);
+        });
+
+        document.getElementById('color3').addEventListener('input', (e) => {
+          if (part3) part3.material.color.set(e.target.value);
+        });
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
 </html>
