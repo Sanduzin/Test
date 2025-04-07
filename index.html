@@ -14,22 +14,20 @@
         justify-content: center;
         height: 100vh;
       }
-
       model-viewer {
         width: 100%;
         height: 90%;
       }
-
       .controls {
         display: flex;
-        gap: 10px;
-        margin: 10px;
+        gap: 1rem;
+        margin: 1rem;
       }
     </style>
   </head>
   <body>
     <model-viewer
-      id="viewer"
+      id="modelViewer"
       src="12r.glb"
       alt="Modelo 3D"
       auto-rotate
@@ -41,48 +39,38 @@
     ></model-viewer>
 
     <div class="controls">
-      <label for="rectangleColor">Rectangle002:</label>
-      <input type="color" id="rectangleColor" value="#ff0000" />
-      <label for="lineColor">Line004:</label>
-      <input type="color" id="lineColor" value="#00ff00" />
+      <label>
+        Rectangle002:
+        <input type="color" id="colorRect" />
+      </label>
+      <label>
+        Line004:
+        <input type="color" id="colorLine" />
+      </label>
     </div>
 
     <script type="module">
-      const modelViewer = document.querySelector("#viewer");
+      const viewer = document.getElementById('modelViewer');
 
-      modelViewer.addEventListener("load", () => {
-        const scene = modelViewer.scene;
+      viewer.addEventListener('load', () => {
+        const scene = viewer.scene;
+        const rectangle = scene.getObjectByName('Rectangle002');
+        const line = scene.getObjectByName('Line004');
 
-        // Função para trocar cor
-        function setColor(objectName, color) {
-          const node = scene.getObjectByName(objectName);
-          if (node && node.material) {
-            node.material.pbrMetallicRoughness.setBaseColorFactor(
-              hexToRgba(color)
-            );
+        if (!rectangle) console.warn('Rectangle002 não encontrado');
+        if (!line) console.warn('Line004 não encontrado');
+
+        document.getElementById('colorRect').addEventListener('input', (e) => {
+          if (rectangle && rectangle.material) {
+            rectangle.material.color.set(e.target.value);
           }
-        }
+        });
 
-        // Converte cor hexadecimal para RGBA
-        function hexToRgba(hex) {
-          const r = parseInt(hex.slice(1, 3), 16) / 255;
-          const g = parseInt(hex.slice(3, 5), 16) / 255;
-          const b = parseInt(hex.slice(5, 7), 16) / 255;
-          return [r, g, b, 1.0];
-        }
-
-        // Listeners dos inputs de cor
-        document
-          .getElementById("rectangleColor")
-          .addEventListener("input", (e) => {
-            setColor("Rectangle002", e.target.value);
-          });
-
-        document
-          .getElementById("lineColor")
-          .addEventListener("input", (e) => {
-            setColor("Line004", e.target.value);
-          });
+        document.getElementById('colorLine').addEventListener('input', (e) => {
+          if (line && line.material) {
+            line.material.color.set(e.target.value);
+          }
+        });
       });
     </script>
   </body>
